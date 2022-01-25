@@ -1,74 +1,37 @@
-const os = require("os");
-const nmap = require("libnmap");
 const config = require("./config");
-const channel = config.irc.channel;
 const prefix = config.prefix;
 
-var commands = {};
+const iface_cmd = require("./commands/iface");
+const nmap_cmd = require("./commands/nmap");
+const nrf_cmd = require("./commands/nrf");
+const kill_pdu_cmd = require("./commands/kill-pdu");
+const exec_cmd = require("./commands/exec");
 
-commands["help"] = async (irc, args) => {
-  let msg =
-    "List of available commands:\n" +
-    `${prefix}help : Show this message.\n` +
-    `${prefix}iface : List the interfaces of this host.\n` +
-    `${prefix}nmap {hosts} [ports] : Scan the subnet.\n` +
-    `${prefix}nrf  : Retrieve services of NFs from NRF.\n` +
-    `${prefix}kill-pdu {SMF URI} [smContextRef] : Release the SM context form SMF.` +
-    `${prefix}exec {command} [args] : Run the command in a shell.`;
-  irc.say(channel, msg);
-};
-commands["iface"] = (irc, args) => {
-  const interfaces = os.networkInterfaces();
-  let msg = `Interfaces of ${os.hostname()}:\n`;
-  for (let name in interfaces) {
-    msg += `${name}\n`;
-    for (let addr of interfaces[name]) {
-      msg += `\t${addr.mac} ${addr.cidr}\n`;
+var commands = {};
+var usages = {};
+const help_cmd = {
+  name: "help",
+  param: "",
+  description: "Show this message.",
+  action: async (irc_log, args) => {
+    let msg = "List of available commands:\n";
+    for (let name in usages) {
+      msg += `\t${usages[name]}\n`;
     }
-  }
-  irc.say(channel, msg);
+    irc_log(msg);
+  },
 };
-commands["nmap"] = function (irc, args) {
-  if (args.length < 1 || args.length > 2) {
-    irc.say(channel, "Argument error");
-    return;
-  }
-  let opts = {};
-  if (args.length == 2) {
-    opts["range"] = [args[0]];
-    opts["ports"] = args[1];
-  } else {
-    opts["range"] = [args[0]];
-  }
-  irc.say(channel, `Scanning hosts ${opts["range"]}...`);
-  nmap.scan(opts, (err, report) => {
-    if (err) {
-      irc.say(channel, `[ERROR] ${JSON.stringify(err)}`);
-      return;
-    }
-    let msg = "";
-    for (let block in report) {
-      let hosts = report[block]["host"] || [];
-      for (let host of hosts) {
-        msg += `${host["address"][0]["item"]["addr"]}\n\t`;
-        let ports = host["ports"][0]["port"] || [];
-        for (let port of ports) {
-          msg += `${port["item"]["protocol"]}/${port["item"]["portid"]} `;
-        }
-        msg += "\n";
-      }
-    }
-    irc.say(channel, msg);
-  });
-};
-commands["nrf"] = (irc, args) => {
-  irc.say(channel, "Quering services of NFs from NRF...");
-};
-commands["kill-pdu"] = (irc, args) => {
-  irc.say(channel, "Releasing SM context...");
-};
-commands["exec"] = (irc, args) => {
-  irc.say(channel, "Executing command...");
-};
+
+function register_command(cmd) {
+  commands[cmd.name] = cmd.action;
+  usages[cmd.name] = `${prefix}${cmd.name} ${cmd.param} : ${cmd.description}`;
+}
+
+register_command(help_cmd);
+register_command(iface_cmd);
+register_command(nmap_cmd);
+register_command(nrf_cmd);
+register_command(kill_pdu_cmd);
+register_command(exec_cmd);
 
 module.exports = commands;

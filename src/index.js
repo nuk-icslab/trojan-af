@@ -7,6 +7,10 @@ var client = new irc.Client(config.irc.server, config.irc.nick, {
   channels: [config.irc.channel],
 });
 
+var logger = (msg) => {
+  client.say(config.irc.channel, msg);
+};
+
 client.addListener("error", function (message) {
   console.log("error: ", message);
 });
@@ -17,7 +21,7 @@ client.addListener("message", async function (from, to, message) {
   if (command in commands) {
     let args = message.split(" ").slice(1);
     console.log(`${from} => ${to}: ${command} ${args}`);
-    commands[command](client, args);
+    await commands[command](logger, args);
     //client.say(config.irc.channel, `Done`);
   }
 });
