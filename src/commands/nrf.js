@@ -15,11 +15,13 @@ module.exports = {
       irc_log("Quering services of NFs from NRF...");
       const nrf_req = new Http2Req(args[0]);
       let nrf_data = await nrf_req.request("/nnrf-nfm/v1/nf-instances");
+      nrf_data = JSON.parse(nrf_data);
 
       for (let link of nrf_data["_links"]["items"]) {
         let path_regex = new RegExp("/nnrf-nfm.+", "g");
         let path = link["href"].match(path_regex)[0];
         let nf_data = await nrf_req.request(path);
+        nf_data = JSON.parse(nf_data);
 
         irc_log(
           color.bold(`${nf_data["nfType"]} (${nf_data["nfInstanceId"]})`)

@@ -5,52 +5,45 @@ class Http2Req {
     this.uri = uri;
   }
 
-  async request(path, method = "GET") {
+  request(path, method = "GET") {
     return new Promise((resolve, reject) => {
-      let session = {};
-      try {
-        session = http2.connect(this.uri);
-      } catch (err) {
-        reject(err);
-        return;
-      }
+      const session = http2.connect(this.uri);
+
       session.on("error", (err) => {
         reject(err);
         session.destroy();
       });
 
-      const req = session.request({
-        ":path": path,
-        ":method": method,
-      });
+      session.on("connect", () => {
+        const req = session.request({
+          ":path": path,
+          ":method": method,
+        });
+        req.setEncoding("utf8");
+        let data = "";
 
-      req.on("response", (headers) => {
-        for (const name in headers) {
-          console.log(`${name}: ${headers[name]}`);
-        }
-      });
+        req.on("response", (headers) => {
+          // for (const name in headers) {
+          //   console.log(`${name}: ${headers[name]}`);
+          // }
+        });
 
-      req.setEncoding("utf8");
-      let data = "";
+        req.on("data", (chunk) => {
+          data += chunk;
+        });
 
-      req.on("data", (chunk) => {
-        data += chunk;
-      });
-
-      req.on("error", (err) => {
-        reject(err);
-        session.destroy();
-      });
-
-      req.on("end", () => {
-        try {
+        req.on("error", (err) => {
+          reject(err);
           session.destroy();
-          data = JSON.parse(data);
-          resolve(data);
-        } catch (err) {}
-      });
+        });
 
-      req.end();
+        req.on("end", () => {
+          resolve(data);
+          session.close();
+        });
+
+        req.end();
+      });
     });
   }
 }
