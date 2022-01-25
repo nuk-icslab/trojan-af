@@ -1,4 +1,5 @@
 const os = require("os");
+const color = require("irc-colors");
 
 module.exports = {
   name: "iface",
@@ -6,13 +7,12 @@ module.exports = {
   description: "List the interfaces of this host.",
   action: (irc_log, args) => {
     const interfaces = os.networkInterfaces();
-    let msg = `Interfaces of ${os.hostname()}:\n`;
+    irc_log(color.olive(`Interfaces of ${os.hostname()}:`));
     for (let name in interfaces) {
-      msg += `${name}\n`;
+      irc_log(color.bold(`${name}`));
       for (let addr of interfaces[name]) {
-        msg += `\t${addr.mac} ${addr.cidr}\n`;
+        irc_log(`\t${addr.mac} ${addr.cidr}`);
       }
     }
-    irc_log(msg);
   },
 };

@@ -1,5 +1,6 @@
 const config = require("./config");
 const prefix = config.prefix;
+const color = require("irc-colors");
 
 const iface_cmd = require("./commands/iface");
 const nmap_cmd = require("./commands/nmap");
@@ -14,7 +15,7 @@ const help_cmd = {
   param: "",
   description: "Show this message.",
   action: async (irc_log, args) => {
-    let msg = "List of available commands:\n";
+    let msg = color.olive("List of available commands:\n");
     for (let name in usages) {
       msg += `\t${usages[name]}\n`;
     }
