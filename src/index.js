@@ -17,7 +17,7 @@ client.addListener("message", async function (from, to, message) {
   if (command in commands) {
     let args = message.split(" ").slice(1);
     console.log(`${from} => ${to}: ${command} ${args}`);
-    await commands[command](client, args);
-    client.say(config.irc.channel, `Done`);
+    commands[command](client, args);
+    //client.say(config.irc.channel, `Done`);
   }
 });
