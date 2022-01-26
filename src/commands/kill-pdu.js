@@ -36,7 +36,7 @@ module.exports = {
           }
         }
       } catch (err) {
-        irc_log(color.red(`[error] ${err}`));
+        irc_log(color.red(`[error] ${JSON.stringify(err)}`));
       }
     }
   },
