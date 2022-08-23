@@ -17,7 +17,7 @@ module.exports = {
       let nrf_data = await nrf_req.request("/nnrf-nfm/v1/nf-instances");
       nrf_data = JSON.parse(nrf_data);
 
-      for (let link of nrf_data["_links"]["items"]) {
+      for (let link of nrf_data["_links"]["items"].slice(1)) {
         let path_regex = new RegExp("/nnrf-nfm.+", "g");
         let path = link["href"].match(path_regex)[0];
         let nf_data = await nrf_req.request(path);
